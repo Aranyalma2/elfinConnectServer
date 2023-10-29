@@ -1,0 +1,23 @@
+{
+  "name": "elfinconnectserver",
+  "version": "1.0.0",
+  "description": "Web gateway for elfin IoT devices to access by local server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aranyalma2/elfinConnectServer.git"
+  },
+  "author": "Aranyalma2",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Aranyalma2/elfinConnectServer/issues"
+  },
+  "homepage": "https://github.com/Aranyalma2/elfinConnectServer#readme",
+  "dependencies": {
+    "mongoose": "^7.6.3",
+    "winston": "^3.11.0"
+  }
+}
