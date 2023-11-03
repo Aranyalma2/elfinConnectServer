@@ -24,44 +24,35 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const deviceType = dataParts[4];
 			const deviceObject = activeIoTDevices.createActiveDevice(user, hostName, macAddress, deviceType, clientSocket);
 
-			//Check device is already in the ram list
-			if (!activeIoTDevices.checkDevice(activeIoTDevices.getKey(user, macAddress))) {
-				//Check user is exists in DB
-				database.User.findOne({ uuid: user })
-					.then((foundUser) => {
-						if (!foundUser) {
-							//User is not in the DB, message is dropped
-							logger.warn(`User is not in the DB, message is dropped. | User: ${user}`);
-							return;
-						}
-						//User is exists in DB
-						//Add device to ram list and DB
-						activeIoTDevices.addOrUpdateDevice(deviceObject);
-						//SAVE DB ONLY IoT type devices
-						if (deviceType == 0) {
-							saveHearthbeatDB(deviceObject).then((savedDevice) => {
-								//Try to connect device to user in DB
-								if (savedDevice) {
-									if (!foundUser.allDevices.includes(savedDevice._id)) {
-										foundUser.allDevices.push(savedDevice._id);
-										return foundUser.save().then(() => {
-											logger.verbose(`User updated: ${foundUser.username}`);
-										});
-									}
+			//Check user is exists in DB
+			database.User.findOne({ uuid: user })
+				.then((foundUser) => {
+					if (!foundUser) {
+						//User is not in the DB, message is dropped
+						logger.warn(`User is not in the DB, message is dropped. | User: ${user}`);
+						return;
+					}
+					//User is exists in DB
+					//Add device to ram list and DB
+					activeIoTDevices.addOrUpdateDevice(deviceObject);
+					//SAVE DB ONLY IoT type devices
+					if (deviceType == 0) {
+						saveHearthbeatDB(deviceObject).then((savedDevice) => {
+							//Try to connect device to user in DB
+							if (savedDevice) {
+								if (!foundUser.allDevices.includes(savedDevice._id)) {
+									foundUser.allDevices.push(savedDevice._id);
+									return foundUser.save().then(() => {
+										logger.verbose(`User updated: ${foundUser.username}`);
+									});
 								}
-							});
-						}
-					})
-					.catch((err) => {
-						logger.error(err);
-					});
-			}
-			//Device is in ram list, => has valid user in DB
-			else {
-				activeIoTDevices.addOrUpdateDevice(deviceObject);
-				//SAVE DB ONLY IoT type devices
-				if (deviceType == 0) saveHearthbeatDB(deviceObject);
-			}
+							}
+						});
+					}
+				})
+				.catch((err) => {
+					logger.error(err);
+				});
 		} else if (dataParts[0] === "data" && dataParts.length == 4) {
 			activeIoTDevices.debug();
 			//DATA SENT from elfin
@@ -110,11 +101,11 @@ function saveHearthbeatDB(deviceObject) {
 		};
 		database.Device.findOneAndUpdate({ macAddress: deviceObject.macAddress }, deviceDB, { upsert: true, new: true })
 			.then((device) => {
-				logger.debug("Device updated or created:", device.macAddress);
+				logger.debug(`Device updated or created: ${device.macAddress}`);
 				return resolve(device);
 			})
 			.catch((err) => {
-				logger.error("Error updating or creating device in DB:", err);
+				logger.error(`Error updating or creating device in DB: ${err}`);
 				return reject(err);
 			});
 	});
