@@ -3,31 +3,27 @@ const logger = require("./logger");
 
 const activeConnection = {};
 
-function addConnection(user, device1, device2) {
-    //Check if user has a connection:
-    if (user in activeConnection) {
-        //close tcp?
-    }
+function addConnection(connectionID, device1, device2) {
 
     const connection = {
         device1,
         device2,
     }
 
-    activeConnection[user] = connection;
-    logger.verbose(`Connection created: User: ${user} Devices: ${connection.device1.hostName} - ${connection.device2.hostName}`);
+    activeConnection[connectionID] = connection;
+    logger.verbose(`Connection created: User: ${connectionID} Devices: ${connection.device1.hostName} - ${connection.device2.hostName}`);
 }
 
-function getUserConnection(user) {
-    return activeConnection[user];
+function getUserConnection(connectionID) {
+    return activeConnection[connectionID];
 }
 
-function getOtherHalf(user, device) {
-    const connection = activeConnection[user];
+function getOtherHalf(connectionID, device) {
+    const connection = activeConnection[connectionID];
 
     //Check object existence
     if (connection === undefined || connection.device1 === undefined || connection.device2 === undefined) {
-        logger.error(`Connection PANIK: Invalid connection. User: ${user} | Reason: Connection endpoints, or connection object is not created.`);
+        logger.error(`Connection PANIK: Invalid connection. User: ${connectionID} | Reason: Connection endpoints, or connection object is not created.`);
         return device;
     }
 

@@ -64,13 +64,14 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const macAddress = dataParts[2];
 			const payload = Buffer.from(dataParts[3], "ascii");
 			//Search for destination device
-			const sourceDevice = activeIoTDevices.getDevice(uuid, macAddress);
-			const destinationDevice = activeConnections.getOtherHalf(uuid, sourceDevice);
+			const sourceDevice = activeIoTDevices.getDevice(activeIoTDevices.getKey(uuid, macAddress));
+			const destinationDevice = activeConnections.getOtherHalf(activeIoTDevices.getKey(uuid, sourceDevice), sourceDevice);
 			logger.debug(`Source device: ${sourceDevice.hostName}`);
 			logger.debug(`Destination device: ${destinationDevice.hostName}`);
 			logger.debug(`Payload ${payload}`);
 			//Forward payload to destination device
 			destinationDevice.clientSocket.write(payload);
+
 		} else if (dataParts[0] === "conn" && dataParts.length == 4) {
 			//TO CREATE a connection for user between 2 end-device
 			//Exapmle conn;uuid:almafa;mac1:#MAC1#;mac2:#MAC2#
@@ -80,7 +81,7 @@ function tunnelRawDataHandler(clientSocket, data) {
 			//HIBA
 			const dev1MAC = dataParts[2];
 			const dev2MAC = dataParts[3];
-			activeConnections.addConnection(activeIoTDevices.getDevice(user, dev1MAC), activeIoTDevices.getDevice(user, dev2MAC));
+			activeConnections.addConnection(activeIoTDevices.getKey(user, dev1MAC), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev1MAC)), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev2MAC)));
 		} else {
 			logger.warn(`Invalid payload: ${dataStr}`);
 		}
