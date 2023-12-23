@@ -5,6 +5,15 @@ const activeConnection = {};
 
 function addConnection(connectionID, device1, device2) {
 
+    if(device1 == undefined){
+        logger.warn(`Unable to create connection: Device1 is missing.`);
+        return;
+    }
+    if(device2 == undefined){
+        logger.warn(`Unable to create connection: Device2 is missing.`);
+        return;
+    }
+
     const connection = {
         device1,
         device2,
