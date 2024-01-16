@@ -102,7 +102,7 @@ function saveHearthbeatDB(deviceObject) {
 		};
 		database.Device.findOneAndUpdate({ macAddress: deviceObject.macAddress }, deviceDB, { upsert: true, new: true })
 			.then((device) => {
-				logger.debug(`Device updated or created: ${device.macAddress}`);
+				logger.debug(`Device updated or created: ${deviceObject.macAddress}`);
 				return resolve(device);
 			})
 			.catch((err) => {
