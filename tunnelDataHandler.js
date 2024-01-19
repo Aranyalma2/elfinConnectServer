@@ -1,10 +1,12 @@
-//IN-RAM Collections
-const activeIoTDevices = require("./active-devices");
-const activeConnections = require("./active-connection");
+const endpoint = require("./endpoint/device");
+const endpointDB = require("./endpoint/db");
+const bridge = require("./bridge/connection");
+
 const logger = require("./logger");
 
 //Persistance Collections
-const database = require("./db.js");
+const database = require("./database/db.js");
+const { getDevice } = require("./endpoint/device");
 
 function tunnelRawDataHandler(clientSocket, data) {
 	//Parse string by expected
@@ -22,37 +24,12 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const macAddress = dataParts[2];
 			const hostName = dataParts[3];
 			const deviceType = dataParts[4];
-			const deviceObject = activeIoTDevices.createActiveDevice(user, hostName, macAddress, deviceType, clientSocket);
+			const deviceObject = endpoint.createActiveDevice(user, macAddress, clientSocket);
 
-			//Check user is exists in DB
-			database.User.findOne({ uuid: user })
-				.then((foundUser) => {
-					if (!foundUser) {
-						//User is not in the DB, message is dropped
-						logger.warn(`User is not in the DB, message is dropped. | User: ${user}`);
-						return;
-					}
-					//User is exists in DB
-					//Add device to ram list and DB
-					activeIoTDevices.addOrUpdateDevice(deviceObject);
-					//SAVE DB ONLY IoT type devices
-					if (deviceType == 0) {
-						saveHearthbeatDB(deviceObject).then((savedDevice) => {
-							//Try to connect device to user in DB
-							if (savedDevice) {
-								if (!foundUser.allDevices.includes(savedDevice._id)) {
-									foundUser.allDevices.push(savedDevice._id);
-									return foundUser.save().then(() => {
-										logger.verbose(`User updated: ${foundUser.username}`);
-									});
-								}
-							}
-						});
-					}
-				})
-				.catch((err) => {
-					logger.error(err);
-				});
+			endpoint.addOrUpdateDevice(deviceObject);
+			endpointDB.connectToUser({ownerUuid:user, hostName:hostName, macAddress:macAddress, lastSeenDate: deviceObject.lastSeenDate, })
+
+
 		} else if (dataParts[0] === "data" && dataParts.length == 4) {
 			activeIoTDevices.debug();
 			//DATA SENT from elfin
@@ -60,10 +37,12 @@ function tunnelRawDataHandler(clientSocket, data) {
 			logger.verbose(`Received data: ${dataStr}`);
 
 			//Parse incoming data
-			const uuid = dataParts[1];
-			const macAddress = dataParts[2];
+			const user = dataParts[1];
+			const dev1MAC = dataParts[2];
 			const payload = Buffer.from(dataParts[3], "ascii");
 			//Search for destination device
+
+			/*
 			const sourceDevice = activeIoTDevices.getDevice(activeIoTDevices.getKey(uuid, macAddress));
 			const destinationDevice = activeConnections.getOtherHalf(activeIoTDevices.getKey(uuid, sourceDevice), sourceDevice);
 			logger.debug(`Source device: ${sourceDevice.hostName}`);
@@ -71,17 +50,38 @@ function tunnelRawDataHandler(clientSocket, data) {
 			logger.debug(`Payload ${payload}`);
 			//Forward payload to destination device
 			destinationDevice.clientSocket.write(payload);
+			*/
 
-		} else if (dataParts[0] === "conn" && dataParts.length == 4) {
+			const sourceDevice = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
+			const destinationDevice = bridge.getEndpointSocket(user, sourceDevice.clientSocket);
+			destinationDevice.clientSocket.write(payload);
+
+
+		} else if (dataParts[0] === "connthem" && dataParts.length == 4) {
 			//TO CREATE a connection for user between 2 end-device
-			//Exapmle conn;uuid:almafa;mac1:#MAC1#;mac2:#MAC2#
-			logger.verbose(`Received connection request: ${dataStr}`);
+			//Exapmle connthem;uuid:almafa;mac1:#MAC1#;mac2:#MAC2#
+			logger.verbose(`Received connection 2 device request: ${dataStr}`);
 
 			const user = dataParts[1];
-			//HIBA
 			const dev1MAC = dataParts[2];
 			const dev2MAC = dataParts[3];
-			activeConnections.addConnection(activeIoTDevices.getKey(user, dev1MAC), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev1MAC)), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev2MAC)));
+
+			//activeConnections.addConnection(activeIoTDevices.getKey(user, dev1MAC), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev1MAC)), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev2MAC)));
+			const device1 = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
+			const device2 = endpoint.getDevice(endpoint.getKey(user, dev2MAC));
+			bridge.setupSocketConnection(user, device2.clientSocket, device1.clientSocket);
+
+		} else if (dataParts[0] === "connme" && dataParts.length == 3){
+			//TO CREATE a connection for user between incomming socket and an endpoint-device
+			//Exapmle connme;uuid:almafa;mac:#MAC#
+			logger.verbose(`Received connection socket-endpoint device request: ${dataStr}`);
+
+			const user = dataParts[1];
+			const devMAC = dataParts[2];	
+			
+			const device = endpoint.getDevice(endpoint.getKey(user, devMAC));
+			bridge.setupSocketConnection(user, clientSocket, device.clientSocket);
+
 		} else {
 			logger.warn(`Invalid payload: ${dataStr}`);
 		}
@@ -90,26 +90,6 @@ function tunnelRawDataHandler(clientSocket, data) {
 		//console.log(activeIoTDevices.getDevice("almafaa", "98D863CC68B1").clientSocket.write("ipsz"));//.clientSocket.write("upsz");
 		logger.warn(`Invalid payload: ${dataStr}`);
 	}
-}
-
-function saveHearthbeatDB(deviceObject) {
-	return new Promise((resolve, reject) => {
-		//Update device
-		const deviceDB = {
-			hostName: deviceObject.hostName,
-			macAddress: deviceObject.macAddress,
-			lastSeenDate: deviceObject.lastSeenDate,
-		};
-		database.Device.findOneAndUpdate({ macAddress: deviceObject.macAddress }, deviceDB, { upsert: true, new: true })
-			.then((device) => {
-				logger.debug(`Device updated or created: ${deviceObject.macAddress}`);
-				return resolve(device);
-			})
-			.catch((err) => {
-				logger.error(`Error updating or creating device in DB: ${err}`);
-				return reject(err);
-			});
-	});
 }
 
 module.exports = tunnelRawDataHandler;
