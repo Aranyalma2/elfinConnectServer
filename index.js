@@ -1,5 +1,5 @@
 const net = require('net');
-const { mongoose, Device, Terminal, Connection, User } = require("./db");
+const { mongoose, Device, Terminal, Connection, User } = require("./database/db");
 const db_example_fill = require("./db-example");
 const tunnelDataHandler = require("./tunnelDataHandler");
 const logger = require("./logger");

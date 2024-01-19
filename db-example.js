@@ -1,4 +1,4 @@
-const { mongoose, Device, Terminal, Connection, User } = require("./db");
+const { mongoose, Device, Terminal, Connection, User } = require("./database/db");
 
 async function insertExampleData() {
   try {

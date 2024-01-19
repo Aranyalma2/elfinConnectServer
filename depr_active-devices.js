@@ -12,7 +12,7 @@ function createActiveDevice(
     deviceType,
     clientSocket
 ) {
-    const lastSeenDate = new Date();
+    const lastSeenDate = new Date("YYYY-MM-DDTHH:mm:ss");
     const device = {
         ownerUuid,
         hostName,

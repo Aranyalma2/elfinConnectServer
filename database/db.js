@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const logger = require("./logger");
+const logger = require("../logger");
 
 mongoose
     .connect("mongodb://10.101.2.4:27017/test")
