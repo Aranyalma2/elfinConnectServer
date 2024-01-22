@@ -8,9 +8,9 @@ const logger = require("./logger");
 const database = require("./database/db.js");
 const { getDevice } = require("./endpoint/device");
 
-function tunnelRawDataHandler(clientSocket, data) {
+function tunnelRawDataHandler(clientSocket, dataStr) {
 	//Parse string by expected
-	const dataStr = data.toString();
+	//const dataStr = data.toString();
 	const dataParts = dataStr.split(";");
 
 	if (dataParts.length > 1) {
@@ -30,8 +30,7 @@ function tunnelRawDataHandler(clientSocket, data) {
 			endpointDB.connectToUser({ownerUuid:user, hostName:hostName, macAddress:macAddress, lastSeenDate: deviceObject.lastSeenDate, })
 
 
-		} else if (dataParts[0] === "data" && dataParts.length == 4) {
-			activeIoTDevices.debug();
+		} else if (dataParts[0] === "data" && dataParts.length >= 4) {
 			//DATA SENT from elfin
 			//Example: data;uuid:almafa;mac:%MAC;#PAYLOAD#
 			logger.verbose(`Received data: ${dataStr}`);
@@ -39,7 +38,7 @@ function tunnelRawDataHandler(clientSocket, data) {
 			//Parse incoming data
 			const user = dataParts[1];
 			const dev1MAC = dataParts[2];
-			const payload = Buffer.from(dataParts[3], "ascii");
+			const payload = Buffer.from(dataParts.slice(2).join(';'), "ascii");
 			//Search for destination device
 
 			/*
@@ -53,8 +52,10 @@ function tunnelRawDataHandler(clientSocket, data) {
 			*/
 
 			const sourceDevice = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
-			const destinationDevice = bridge.getEndpointSocket(user, sourceDevice.clientSocket);
-			destinationDevice.clientSocket.write(payload);
+			//sourceDevice.clientSocket.write("Almaaaaa");
+			const destinationDeviceSocket = bridge.getEndpointSocket(user, sourceDevice.clientSocket);
+			//console.log(destinationDeviceSocket._peername);
+			destinationDeviceSocket.write(payload);
 
 
 		} else if (dataParts[0] === "connthem" && dataParts.length == 4) {

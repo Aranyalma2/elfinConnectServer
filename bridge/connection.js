@@ -38,10 +38,10 @@ function getEndpointSocket(userID, socket){
 
     // If a pair with the specified socket is found, return the other half
     if (pairWithSocket) {
-        return [pairWithSocket.socket1 === socket ? pairWithSocket.socket2 : pairWithSocket.socket1];
+        return pairWithSocket.socket1 === socket ? pairWithSocket.socket2 : pairWithSocket.socket1;
     }
 
-    return [];
+    return {};
 
   return otherHalfPairs;
 }
