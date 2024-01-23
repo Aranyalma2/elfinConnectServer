@@ -12,7 +12,7 @@ const server = net.createServer((clientSocket) => {
   logger.verbose(`Device connected: ${clientSocket.remoteAddress}:${clientSocket.remotePort}`);
 
   // Handle errors, remove socket from bridge if it is exists
-  clientSocket.on('error', (err) => {
+  clientSocket.on('error', (error) => {
     logger.info(`Client socket error: ${error}`);
     logger.verbose('A bridge connection is demolished');
     try{
@@ -41,7 +41,11 @@ const server = net.createServer((clientSocket) => {
     let decryptedText;
 
     try{
+      //console.log(data);
       decryptedText = crypto.decryptAESCBC(data.toString('base64'));
+      console.log(Buffer.from(decryptedText, 'utf8').toString('hex'));
+      console.log(Buffer.from(decryptedText, 'utf8').toString('hex'));
+      console.log(Buffer.from(crypto.encryptAESCBC(decryptedText), 'hex'));
     } catch(error){
         logger.warn(`Message decryption error: ${error}`);
         logger.warn(`Message content: ${data.toString()}`);
