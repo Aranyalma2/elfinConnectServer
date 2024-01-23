@@ -2,7 +2,7 @@ const net = require('net');
 const tunnelDataHandler = require("./tunnelDataHandler");
 const logger = require("./logger");
 const bridge = require("./bridge/connection") 
-const crypto = require('crypto');
+const crypto = require('./crypto/crypto');
 
 const serverPort = 8080;
 const aesKEY = "0123456789abcdef";
@@ -30,30 +30,14 @@ const server = net.createServer((clientSocket) => {
   // When data is received from a client, decrypt and pass to processing
   clientSocket.on('data', (data) => {
 
-    const decryptedText = decryptAESCBCHEX(data.toString('hex'), aesKEY);
-    logger.verbose('Incomming Decrypted Text:', decryptedText);
+    //console.log(data.toString('hex'));
+
+    const decryptedText = crypto.decryptAESCBC(data.toString('base64'));
     tunnelDataHandler(clientSocket, decryptedText);
+
   });
 });
 
-//Decrypt the AES-128-cbc (IV == KEY)
-//First try with PKCS#7 padding, if fail, try without it.
-function decryptAESCBCHEX(ciphertextHex, key, padding = true) {
-  try {
-    const decipher = crypto.createDecipheriv('aes-128-cbc', key, key);
-    decipher.setAutoPadding(padding);
-    let decrypted = decipher.update(ciphertextHex, 'hex', 'utf-8');
-    decrypted += decipher.final('utf-8');
-    return decrypted;
-  } catch (error) {
-    logger.debug('Decryption error, try without padding:', error.message);
-    //try without padding
-    if(padding){
-      return decryptAESCBCHEX(ciphertextHex, key, padding = false);
-    }
-    return null;
-  } 
-}
 
 server.listen(serverPort, () => {
   logger.info(`TCP proxy server is listening on port ${serverPort}`);
