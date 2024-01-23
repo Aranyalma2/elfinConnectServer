@@ -1,6 +1,7 @@
 const endpoint = require("./endpoint/device");
 const endpointDB = require("./endpoint/db");
 const bridge = require("./bridge/connection");
+const crypto = require('./crypto/crypto');
 
 const logger = require("./logger");
 
@@ -52,16 +53,17 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			*/
 
 			const sourceDevice = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
-			//sourceDevice.clientSocket.write("Almaaaaa");
 			const destinationDeviceSocket = bridge.getEndpointSocket(user, sourceDevice.clientSocket);
-			//console.log(destinationDeviceSocket._peername);
-			destinationDeviceSocket.write(payload);
+
+			const encryptedMessage = crypto.encryptAESCBC(payload);
+			
+			destinationDeviceSocket.write(encryptedMessage);
 
 
 		} else if (dataParts[0] === "connthem" && dataParts.length == 4) {
 			//TO CREATE a connection for user between 2 end-device
 			//Exapmle connthem;uuid:almafa;mac1:#MAC1#;mac2:#MAC2#
-			logger.verbose(`Received connection 2 device request: ${dataStr}`);
+			logger.info(`Received connection 2 device request: ${dataStr}`);
 
 			const user = dataParts[1];
 			const dev1MAC = dataParts[2];
@@ -75,7 +77,7 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 		} else if (dataParts[0] === "connme" && dataParts.length == 3){
 			//TO CREATE a connection for user between incomming socket and an endpoint-device
 			//Exapmle connme;uuid:almafa;mac:#MAC#
-			logger.verbose(`Received connection socket-endpoint device request: ${dataStr}`);
+			logger.info(`Received connection socket-endpoint device request: ${dataStr}`);
 
 			const user = dataParts[1];
 			const devMAC = dataParts[2];	
@@ -87,8 +89,6 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			logger.warn(`Invalid payload: ${dataStr}`);
 		}
 	} else {
-		//TEST MODBUS READER
-		//console.log(activeIoTDevices.getDevice("almafaa", "98D863CC68B1").clientSocket.write("ipsz"));//.clientSocket.write("upsz");
 		logger.warn(`Invalid payload: ${dataStr}`);
 	}
 }

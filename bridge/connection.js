@@ -1,5 +1,3 @@
-const logger = require("../logger");
-
 let activeConnections = new Map();
 
 // Function to add a socket pair for a user ID to the map
@@ -19,7 +17,6 @@ function setupSocketConnection(userID, socket1, socket2){
     else{
         activeConnections.set(userID, [socketPair]);
     }
-    //logger.verbose(`Connection established: User: ${userID}`)
 }
 
 // Function to get all socket pairs for a user ID from the map
@@ -31,9 +28,7 @@ function getSocketPairs(userId) {
 function getEndpointSocket(userID, socket){
     const allPairs = getSocketPairs(userID);
 
-  // Filter out the pair with the specified socket
-  //const otherHalfPairs = allPairs.filter(pair => pair.socket1 !== socket && pair.socket2 !== socket);
-
+    // Filter out the pair with the specified socket
     const pairWithSocket = allPairs.find(pair => pair.socket1 === socket || pair.socket2 === socket);
 
     // If a pair with the specified socket is found, return the other half
@@ -41,9 +36,9 @@ function getEndpointSocket(userID, socket){
         return pairWithSocket.socket1 === socket ? pairWithSocket.socket2 : pairWithSocket.socket1;
     }
 
-    return {};
+    throw new Error(`Socket has no valid pair. User: ${userID}`);
 
-  return otherHalfPairs;
+
 }
 
 // Function to delete a socket pair for a given user ID and socket

@@ -39,7 +39,7 @@ function addOrUpdateDevice(device) {
 function getDevice(key) {
     const device = activeDevices[key];
     if (device === undefined) {
-        logger.warn(`Device is not exists in active client list | Key: ${key}`);
+        throw new Error(`Device is not exists: User: ${ownerUuid} | Device: ${key}`);
     }
     return device;
 }
@@ -50,7 +50,7 @@ function isOnline(key) {
     //Check device is exists in activity list
     if (device === undefined) {
         logger.warn(
-            `Device is not exists in active client list, inpossibly to be online | User: ${ownerUuid} | Device: ${macAddress}`
+            `Device is not exists in active client list, inpossibly to be online | User: ${ownerUuid} | Device: ${key}`
         );
         return false;
     }
