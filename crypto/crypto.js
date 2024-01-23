@@ -21,7 +21,7 @@ function encryptAESCBC(messageText){
     padding: CryptoJS.pad.NoPadding,
     iv: key
     });
-    return encryptedText.ciphertext;
+    return encryptedText;
 }
 
 module.exports = { decryptAESCBC, encryptAESCBC};
