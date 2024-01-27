@@ -39,7 +39,7 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			//Parse incoming data
 			const user = dataParts[1];
 			const dev1MAC = dataParts[2];
-			const payload = Buffer.from(dataParts.slice(2).join(';'), "ascii");
+			let payload = Buffer.from(dataParts.slice(3).join(';'), "ascii").toString('ascii');
 			//Search for destination device
 
 			/*
@@ -54,7 +54,9 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 
 			const sourceDevice = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
 			const destinationDeviceSocket = bridge.getEndpointSocket(user, sourceDevice.clientSocket);
-
+			
+			//payload = "beat;965b963fa1b585df;98D863584D0E;EW11;0";
+			console.log(payload);
 			const encryptedMessage = crypto.encryptAESCBC(payload);
 			
 			destinationDeviceSocket.write(encryptedMessage);

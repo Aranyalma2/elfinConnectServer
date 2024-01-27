@@ -1,3 +1,5 @@
+const logger = require("../logger");
+
 let activeConnections = new Map();
 
 // Function to add a socket pair for a user ID to the map
@@ -17,6 +19,8 @@ function setupSocketConnection(userID, socket1, socket2){
     else{
         activeConnections.set(userID, [socketPair]);
     }
+
+    logger.info(`A connection established for: ${userID}`);
 }
 
 // Function to get all socket pairs for a user ID from the map

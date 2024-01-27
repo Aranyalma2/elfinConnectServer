@@ -43,16 +43,16 @@ const server = net.createServer((clientSocket) => {
     try{
       //console.log(data);
       decryptedText = crypto.decryptAESCBC(data.toString('base64'));
-      console.log(Buffer.from(decryptedText, 'utf8').toString('hex'));
-      console.log(Buffer.from(decryptedText, 'utf8').toString('hex'));
-      console.log(Buffer.from(crypto.encryptAESCBC(decryptedText), 'hex'));
+      //console.log(data.toString('ascii'));
+      //console.log(Buffer.from(decryptedText, 'hex').toString('hex'));
+      //console.log(Buffer.from(crypto.encryptAESCBC(decryptedText), 'hex'));
     } catch(error){
         logger.warn(`Message decryption error: ${error}`);
-        logger.warn(`Message content: ${data.toString()}`);
+        logger.warn(`Message content: ${data.toString('hex')}`);
     }
 
     try{
-      tunnelDataHandler(clientSocket, decryptedText);
+      tunnelDataHandler(clientSocket, Buffer.from(decryptedText, 'hex').toString());
     } catch(error){
         logger.warn(`Message process error: ${error}`);
         logger.warn(`Message content: ${decryptedText}`);
