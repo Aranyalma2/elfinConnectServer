@@ -5,10 +5,6 @@ const crypto = require('./crypto/crypto');
 
 const logger = require("./logger");
 
-//Persistance Collections
-const database = require("./database/db.js");
-const { getDevice } = require("./endpoint/device");
-
 function tunnelRawDataHandler(clientSocket, dataStr) {
 	//Parse string by expected
 	//const dataStr = data.toString();
@@ -28,7 +24,7 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			const deviceObject = endpoint.createActiveDevice(user, macAddress, clientSocket);
 
 			endpoint.addOrUpdateDevice(deviceObject);
-			endpointDB.connectToUser({ownerUuid:user, hostName:hostName, macAddress:macAddress, lastSeenDate: deviceObject.lastSeenDate, })
+			endpointDB.connectToUser({ownerUuid:user, hostName:hostName, macAddress:macAddress, lastSeenDate: deviceObject.lastSeenDate});
 
 
 		} else if (dataParts[0] === "data" && dataParts.length >= 4) {
@@ -52,12 +48,12 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			destinationDevice.clientSocket.write(payload);
 			*/
 
-			const sourceDevice = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
-			const destinationDeviceSocket = bridge.getEndpointSocket(user, sourceDevice.clientSocket);
+			
+			const destinationDeviceSocket = bridge.getEndpointSocket(user, clientSocket);
 			
 			//payload = "beat;965b963fa1b585df;98D863584D0E;EW11;0";
-			console.log(payload);
 			const encryptedMessage = crypto.encryptAESCBC(payload);
+			//console.log(destinationDeviceSocket);
 			
 			destinationDeviceSocket.write(encryptedMessage);
 
@@ -86,6 +82,28 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			
 			const device = endpoint.getDevice(endpoint.getKey(user, devMAC));
 			bridge.setupSocketConnection(user, clientSocket, device.clientSocket);
+/*
+		} else if (dataParts[0] === "login" && dataParts.length == 2){
+			//Check user exists, send back true or nothing
+			//login;userid
+			logger.info(`User login: ${dataStr}`);
+			endpointDB.checkUser(user).then(userExists =>{
+				if(userExists){
+					clientSocket.write(JSON.stringify("true"));
+				}
+			});
+*/
+		} else if (dataParts[0] === "query" && dataParts.length == 2){
+			//Query user`s devices
+			//query;userid
+			logger.info(`User query: ${dataStr}`);
+
+			const user = dataParts[1];
+			getDevicesJson(user).then(json =>{
+				json += '\n';
+				console.log(json);
+				clientSocket.write(Buffer.from(json, 'utf8'));
+			});
 
 		} else {
 			logger.warn(`Invalid payload: ${dataStr}`);
@@ -93,6 +111,26 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 	} else {
 		logger.warn(`Invalid payload: ${dataStr}`);
 	}
+}
+
+async function getDevicesJson(user) {
+  try {
+    const devices = await endpointDB.getDevices(user);
+    const jsonArray = devices.map(dbDevice => ({
+      hostname: dbDevice.hostName,
+      macaddress: dbDevice.macAddress,
+      lastseendate: dbDevice.lastSeenDate,
+      status: calcOnline(dbDevice.lastSeenDate)
+    }));
+    return JSON.stringify(jsonArray);
+  } catch (error) {
+    console.error("Error fetching devices:", error);
+    return JSON.stringify([]);
+  }
+}
+
+function calcOnline(date) {
+	return date > new Date(Date.now() - 60000) ? "online" : "offline";
 }
 
 module.exports = tunnelRawDataHandler;
