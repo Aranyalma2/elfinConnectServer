@@ -3,8 +3,14 @@ const tunnelDataHandler = require("./tunnelDataHandler");
 const logger = require("./logger");
 const bridge = require("./bridge/connection") 
 const crypto = require('./crypto/crypto');
+//Persistance Collections
+const database = require("./database/db.js");
 
 const serverPort = 8080;
+
+database.connectToDatabase().then(a => {
+  //tunnelDataHandler("query;965b963fa1b585df","query;965b963fa1b585df")
+});
 
 // Create a TCP server that listens for incoming connections
 const server = net.createServer((clientSocket) => {
@@ -25,7 +31,8 @@ const server = net.createServer((clientSocket) => {
   // Handle the connection end event, remove socket from bridge if it is exists
   clientSocket.on('end', () => {
 
-    logger.info('Client socket closed:');
+    logger.info('Client socket closed.');
+    logger.verbose('A bridge connection is demolished');
     try{
       bridge.deleteSocketConnectionBySocket(clientSocket);
     } catch(error){
