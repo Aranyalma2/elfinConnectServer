@@ -51,6 +51,25 @@ function connectToUser(deviceObjectDB){
 		});
 }
 
-const func = {connectToUser};
+async function getDevices(user) {
+  try {
+    const userObject = await database.User.findOne({ uuid: user });
+    const devices = await database.Device.find({ _id: userObject.allDevices });
+    return devices;
+  } catch (err) {
+    return [];
+  }
+}
+
+async function checkUser(user) {
+  try {
+    const userObject = await database.User.findOne({ uuid: user });
+    return typeof userObject !== undifined ? true : false;
+  } catch (err) {
+    return false;
+  }
+}
+
+const func = {connectToUser, getDevices, checkUser};
 
 module.exports = func;
