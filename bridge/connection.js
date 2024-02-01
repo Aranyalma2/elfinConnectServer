@@ -8,8 +8,15 @@ function setupSocketConnection(userID, socket1, socket2){
 
     const existingPairs = getSocketPairs(userID);
     // Check if either socket1 or socket2 is already in the list
-    if (existingPairs.some(pair => pair.socket1 === socketPair.socket1 || pair.socket2 === socketPair.socket2)) {
-        throw new Error("One or both sockets already exist in the list for the given user ID.");
+    if (existingPairs.some(pair => pair.socket1 === socketPair.socket1)) {
+        //throw new Error("One or both sockets already exist in the list for the given user ID.");
+        logger.warn("One or both sockets already exist in the list for the given user ID.")
+        deleteSocketConnection(userID, socket1);
+    }
+    if (existingPairs.some(pair => pair.socket2 === socketPair.socket2)) {
+        //throw new Error("One or both sockets already exist in the list for the given user ID.");
+        logger.warn("One or both sockets already exist in the list for the given user ID.")
+        deleteSocketConnection(userID, socket2);
     }
 
     // Check if the user ID is already in the map
