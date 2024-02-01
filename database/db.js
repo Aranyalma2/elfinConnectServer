@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
 const logger = require("../logger");
 
-mongoose
-    .connect("mongodb://10.101.2.4:27017/test")
-    .then(() => logger.info("DB Connected!"));
-
+const connectToDatabase = async () => {
+  try {
+    await mongoose.connect("mongodb://10.101.2.4:27017/test");
+    logger.info("DB Connected!");
+  } catch (error) {
+    logger.error("DB Connection Error:", error);
+  }
+};
 
 // Define the Device schema and model
 const deviceSchema = new mongoose.Schema({
@@ -26,7 +30,7 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema);
 
 module.exports = {
-    mongoose,
+    connectToDatabase,
     Device,
     User,
 };
