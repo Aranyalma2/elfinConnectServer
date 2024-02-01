@@ -5,7 +5,7 @@ const keyUTF8 = "0123456789abcdef";
 
 const key = CryptoJS.enc.Utf8.parse(keyUTF8);
 
-
+/*
 function decryptAESCBC(encryptedText){
     let decryptedText = CryptoJS.AES.decrypt(encryptedText, key, {
     mode: CryptoJS.mode.CBC,
@@ -23,5 +23,16 @@ function encryptAESCBC(messageText){
     });
     return Buffer.from(encryptedText.ciphertext.toString(CryptoJS.enc.Hex), 'hex');
 }
+
+*/
+
+function decryptAESCBC(encryptedText){
+    return Buffer.from(encryptedText, 'base64').toString('hex');
+}
+
+function encryptAESCBC(messageText){
+    return messageText;
+}
+
 
 module.exports = { decryptAESCBC, encryptAESCBC};
