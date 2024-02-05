@@ -36,19 +36,8 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			const user = dataParts[1];
 			const dev1MAC = dataParts[2];
 			let payload = Buffer.from(dataParts.slice(3).join(';'), "ascii").toString('ascii');
-			//Search for destination device
-
-			/*
-			const sourceDevice = activeIoTDevices.getDevice(activeIoTDevices.getKey(uuid, macAddress));
-			const destinationDevice = activeConnections.getOtherHalf(activeIoTDevices.getKey(uuid, sourceDevice), sourceDevice);
-			logger.debug(`Source device: ${sourceDevice.hostName}`);
-			logger.debug(`Destination device: ${destinationDevice.hostName}`);
-			logger.debug(`Payload ${payload}`);
-			//Forward payload to destination device
-			destinationDevice.clientSocket.write(payload);
-			*/
-
 			
+			//Search for destination device
 			const destinationDeviceSocket = bridge.getEndpointSocket(user, clientSocket);
 			
 			//payload = "beat;965b963fa1b585df;98D863584D0E;EW11;0";
@@ -67,10 +56,17 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			const dev1MAC = dataParts[2];
 			const dev2MAC = dataParts[3];
 
-			//activeConnections.addConnection(activeIoTDevices.getKey(user, dev1MAC), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev1MAC)), activeIoTDevices.getDevice(activeIoTDevices.getKey(user, dev2MAC)));
-			const device1 = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
-			const device2 = endpoint.getDevice(endpoint.getKey(user, dev2MAC));
-			bridge.setupSocketConnection(user, device2.clientSocket, device1.clientSocket);
+	
+			try{
+				const device1 = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
+				const device2 = endpoint.getDevice(endpoint.getKey(user, dev2MAC));
+				bridge.setupSocketConnection(user, device2.clientSocket, device1.clientSocket);
+				clientSocket.write('{"status:success"}'+'\n');
+			}catch(e){
+				logger.warn(e);
+				clientSocket.write('{"status:failed"}'+'\n');
+				
+			}
 
 		} else if (dataParts[0] === "connme" && dataParts.length == 3){
 			//TO CREATE a connection for user between incomming socket and an endpoint-device
@@ -80,19 +76,15 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			const user = dataParts[1];
 			const devMAC = dataParts[2];	
 			
-			const device = endpoint.getDevice(endpoint.getKey(user, devMAC));
-			bridge.setupSocketConnection(user, clientSocket, device.clientSocket);
-/*
-		} else if (dataParts[0] === "login" && dataParts.length == 2){
-			//Check user exists, send back true or nothing
-			//login;userid
-			logger.info(`User login: ${dataStr}`);
-			endpointDB.checkUser(user).then(userExists =>{
-				if(userExists){
-					clientSocket.write(JSON.stringify("true"));
-				}
-			});
-*/
+			try{
+				const device = endpoint.getDevice(endpoint.getKey(user, devMAC));
+				bridge.setupSocketConnection(user, clientSocket, device.clientSocket);
+				clientSocket.write('{"status:success"}'+'\n');
+			}catch(e){
+				logger.warn(e);
+				clientSocket.write('{"status:failed"}'+'\n');
+
+			}
 		} else if (dataParts[0] === "query" && dataParts.length == 2){
 			//Query user`s devices
 			//query;userid
@@ -100,8 +92,8 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 
 			const user = dataParts[1];
 			getDevicesJson(user).then(json =>{
+				//json = "[{\"hostname\":\"host1\",\"macaddress\":\"mac1\",\"lastseendate\":\"2024-01-24T17:47:40.316Z\",\"status\":\"online\"},{\"hostname\":\"EW11\",\"macaddress\":\"98D863584D0E\",\"lastseendate\":\"2024-01-30T18:56:51.357Z\",\"status\":\"online\"},{\"hostname\":\"Eport-EE11\",\"macaddress\":\"E8FDF88BD87E\",\"lastseendate\":\"2024-02-02T00:48:43.512Z\",\"status\":\"online\"}]"
 				json += '\n';
-				console.log(json);
 				clientSocket.write(Buffer.from(json, 'utf8'));
 			});
 
@@ -119,7 +111,7 @@ async function getDevicesJson(user) {
     const jsonArray = devices.map(dbDevice => ({
       hostname: dbDevice.hostName,
       macaddress: dbDevice.macAddress,
-      lastseendate: dbDevice.lastSeenDate,
+      lastseendate: convertESTto24Time(dbDevice.lastSeenDate),
       status: calcOnline(dbDevice.lastSeenDate)
     }));
     return JSON.stringify(jsonArray);
@@ -127,6 +119,28 @@ async function getDevicesJson(user) {
     console.error("Error fetching devices:", error);
     return JSON.stringify([]);
   }
+}
+
+function convertESTto24Time(estDateString) {
+  // Create a formatter with the desired format and set the time zone to 'America/New_York'
+  const formatter = new Intl.DateTimeFormat('hu-HU', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Budapest'
+  });
+
+  // Parse the EST date string
+  const estDate = new Date(estDateString);
+
+  // Format the date in the 24-hour format
+  const formattedESTString = formatter.format(estDate);
+
+  return formattedESTString;
 }
 
 function calcOnline(date) {
