@@ -21,7 +21,7 @@ function createActiveDevice(ownerUuid, macAddress, clientSocket){
 }
 
 //Create key for collection
-function getKey(ownerUuid, macAddress) {
+function getKey(ownerUuid, macAddress){
     return `${ownerUuid}-${macAddress}`;
 }
 
@@ -39,7 +39,7 @@ function addOrUpdateDevice(device) {
 function getDevice(key) {
     const device = activeDevices[key];
     if (device === undefined) {
-        throw new Error(`Device is not exists: User: ${ownerUuid} | Device: ${key}`);
+        throw new Error(`Device is not exists: User: ${key.split("-")[0]} | Device: ${key.split("-")[1]}`);
     }
     return device;
 }
@@ -50,7 +50,7 @@ function isOnline(key) {
     //Check device is exists in activity list
     if (device === undefined) {
         logger.warn(
-            `Device is not exists in active client list, inpossibly to be online | User: ${ownerUuid} | Device: ${key}`
+            `Device is not exists in active client list, impossibly to be online | User: ${key.split("-")[0]} | Device: ${key.split("-")[1]}`
         );
         return false;
     }
