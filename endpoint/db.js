@@ -2,17 +2,17 @@ const logger = require("../logger");
 
 const database = require("../database/db.js");
 
-function saveHearthbeat(deviceObjectDB) {
+function saveHearthbeat(deviceObject) {
 	return new Promise((resolve, reject) => {
 		//Update device
 		const deviceDB = {
-			hostName: deviceObjectDB.hostName,
-			macAddress: deviceObjectDB.macAddress,
-			lastSeenDate: deviceObjectDB.lastSeenDate,
+			hostName: deviceObject.hostName,
+			macAddress: deviceObject.macAddress,
+			lastSeenDate: deviceObject.lastSeenDate,
 		};
-		database.Device.findOneAndUpdate({ macAddress: deviceObjectDB.macAddress }, deviceDB, { upsert: true, new: true })
+		database.Device.findOneAndUpdate({ macAddress: deviceObject.macAddress }, deviceDB, { upsert: true, new: true })
 			.then((device) => {
-				logger.debug(`Device updated or created: ${deviceObjectDB.macAddress}`);
+				logger.debug(`Device updated or created: ${deviceObject.macAddress}`);
 				return resolve(device);
 			})
 			.catch((err) => {
@@ -22,19 +22,19 @@ function saveHearthbeat(deviceObjectDB) {
 	});
 }
 
-function connectToUser(deviceObjectDB){
+function connectToUser(deviceObject){
 
 	//Check user is exists in DB
-	database.User.findOne({ uuid: deviceObjectDB.ownerUuid })
+	database.User.findOne({ uuid: deviceObject.ownerUuid })
 		.then((foundUser) => {
 			if (!foundUser) {
 				//User is not in the DB, message is dropped
-				logger.warn(`User is not in the DB, message is dropped. | User: ${deviceObjectDB.ownerUuid}`);
+				logger.warn(`User is not in the DB, message is dropped. | User: ${deviceObject.ownerUuid}`);
 				return false;
 			}
 			//User is exists in DB
 			//Add device to user DB
-			saveHearthbeat(deviceObjectDB).then((savedDevice) => {
+			saveHearthbeat(deviceObject).then((savedDevice) => {
 				//Try to connect device to user in DB
 				if (savedDevice) {
 					if (!foundUser.allDevices.includes(savedDevice._id)) {
