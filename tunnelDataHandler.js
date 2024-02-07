@@ -2,6 +2,7 @@ const endpoint = require("./endpoint/device");
 const endpointDB = require("./endpoint/db");
 const bridge = require("./bridge/connection");
 const crypto = require('./crypto/crypto');
+const dataHB = require('./endpoint/dataHBHandler');
 
 const logger = require("./logger");
 
@@ -21,11 +22,10 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			const macAddress = dataParts[2];
 			const hostName = dataParts[3];
 			const deviceType = dataParts[4];
-			const deviceObject = endpoint.createActiveDevice(user, macAddress, clientSocket);
+			const deviceObject = endpoint.createActiveDevice(user, hostName, macAddress, clientSocket);
 
 			endpoint.addOrUpdateDevice(deviceObject);
-			endpointDB.connectToUser({ownerUuid:user, hostName:hostName, macAddress:macAddress, lastSeenDate: deviceObject.lastSeenDate});
-
+			endpointDB.connectToUser(deviceObject);
 
 		} else if (dataParts[0] === "data" && dataParts.length >= 4) {
 			//DATA SENT from elfin
@@ -35,7 +35,14 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			//Parse incoming data
 			const user = dataParts[1];
 			const dev1MAC = dataParts[2];
-			let payload = Buffer.from(dataParts.slice(3).join(';'), "ascii").toString('ascii');
+			const hostName = dataParts[3];
+			const deviceType = dataParts[4];
+			if(deviceType === "0"){
+				const deviceObject = endpoint.createActiveDevice(user, hostName, dev1MAC, clientSocket);
+				endpoint.addOrUpdateDevice(deviceObject);
+				dataHB.timerHandler(endpoint.getKey(user, dev1MAC));
+			}
+			const payload = Buffer.from(dataParts.slice(5).join(';'), "ascii").toString('ascii');
 			
 			//Search for destination device
 			const destinationDeviceSocket = bridge.getEndpointSocket(user, clientSocket);
@@ -61,10 +68,10 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 				const device1 = endpoint.getDevice(endpoint.getKey(user, dev1MAC));
 				const device2 = endpoint.getDevice(endpoint.getKey(user, dev2MAC));
 				bridge.setupSocketConnection(user, device2.clientSocket, device1.clientSocket);
-				clientSocket.write('{"status:success"}'+'\n');
+				clientSocket.write('{"status":"success"}'+'\n');
 			}catch(e){
 				logger.warn(e);
-				clientSocket.write('{"status:failed"}'+'\n');
+				clientSocket.write('{"status":"failed"}'+'\n');
 				
 			}
 
@@ -79,10 +86,10 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			try{
 				const device = endpoint.getDevice(endpoint.getKey(user, devMAC));
 				bridge.setupSocketConnection(user, clientSocket, device.clientSocket);
-				clientSocket.write('{"status:success"}'+'\n');
+				clientSocket.write('{"status":"success"}'+'\n');
 			}catch(e){
 				logger.warn(e);
-				clientSocket.write('{"status:failed"}'+'\n');
+				clientSocket.write('{"status":"failed"}'+'\n');
 
 			}
 		} else if (dataParts[0] === "query" && dataParts.length == 2){

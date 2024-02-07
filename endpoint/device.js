@@ -2,10 +2,11 @@ const logger = require("../logger");
 
 let activeDevices = {};
 
-function createActiveDevice(ownerUuid, macAddress, clientSocket){
+function createActiveDevice(ownerUuid, hostName, macAddress, clientSocket){
     const lastSeenDate = new Date();
     const device = {
         ownerUuid,
+        hostName,
         macAddress,
         clientSocket,
         lastSeenDate,
