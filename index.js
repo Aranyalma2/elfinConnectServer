@@ -20,7 +20,7 @@ const server = net.createServer((clientSocket) => {
   // Handle errors, remove socket from bridge if it is exists
   clientSocket.on('error', (error) => {
     logger.info(`Client socket error: ${error}`);
-    logger.verbose('A bridge connection is demolished');
+    logger.verbose(`${clientSocket.remoteAddress}:${clientSocket.remotePort}`);
     try{
       bridge.deleteSocketConnectionBySocket(clientSocket);
     } catch(error){
@@ -32,7 +32,7 @@ const server = net.createServer((clientSocket) => {
   clientSocket.on('end', () => {
 
     logger.info('Client socket closed.');
-    logger.verbose('A bridge connection is demolished');
+    logger.verbose(`${clientSocket.remoteAddress}:${clientSocket.remotePort}`);
     try{
       bridge.deleteSocketConnectionBySocket(clientSocket);
     } catch(error){
