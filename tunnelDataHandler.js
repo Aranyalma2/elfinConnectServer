@@ -15,7 +15,7 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 		if (dataParts[0] === "beat" && dataParts.length == 5) {
 			//HEARTHBEAT from elfin devices
 			//Example: beat;uuid:undifined;mac:%MAC;host:%HOST
-			logger.verbose(`Received hearthbeat: ${dataStr}`);
+			logger.silly(`Received hearthbeat: ${dataStr}`);
 
 			//Parse incoming data
 			const user = dataParts[1];
@@ -30,7 +30,7 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 		} else if (dataParts[0] === "data" && dataParts.length >= 4) {
 			//DATA SENT from elfin
 			//Example: data;uuid:almafa;mac:%MAC;#PAYLOAD#
-			logger.verbose(`Received data: ${dataStr}`);
+			logger.silly(`Received data: ${dataStr}`);
 
 			//Parse incoming data
 			const user = dataParts[1];
@@ -95,11 +95,10 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 		} else if (dataParts[0] === "query" && dataParts.length == 2){
 			//Query user`s devices
 			//query;userid
-			logger.info(`User query: ${dataStr}`);
+			logger.verbose(`User query: ${dataStr}`);
 
 			const user = dataParts[1];
 			getDevicesJson(user).then(json =>{
-				//json = "[{\"hostname\":\"host1\",\"macaddress\":\"mac1\",\"lastseendate\":\"2024-01-24T17:47:40.316Z\",\"status\":\"online\"},{\"hostname\":\"EW11\",\"macaddress\":\"98D863584D0E\",\"lastseendate\":\"2024-01-30T18:56:51.357Z\",\"status\":\"online\"},{\"hostname\":\"Eport-EE11\",\"macaddress\":\"E8FDF88BD87E\",\"lastseendate\":\"2024-02-02T00:48:43.512Z\",\"status\":\"online\"}]"
 				json += '\n';
 				clientSocket.write(Buffer.from(json, 'utf8'));
 			});
