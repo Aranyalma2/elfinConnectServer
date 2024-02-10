@@ -10,12 +10,12 @@ function setupSocketConnection(userID, socket1, socket2){
     // Check if either socket1 or socket2 is already in the list
     if (existingPairs.some(pair => pair.socket1 === socketPair.socket1)) {
         //throw new Error("One or both sockets already exist in the list for the given user ID.");
-        logger.warn("One or both sockets already exist in the list for the given user ID.")
+        logger.warn("One or both sockets already exist in the list for the given user ID.");
         deleteSocketConnection(userID, socket1);
     }
     if (existingPairs.some(pair => pair.socket2 === socketPair.socket2)) {
         //throw new Error("One or both sockets already exist in the list for the given user ID.");
-        logger.warn("One or both sockets already exist in the list for the given user ID.")
+        logger.warn("One or both sockets already exist in the list for the given user ID.");
         deleteSocketConnection(userID, socket2);
     }
 
@@ -65,6 +65,7 @@ function deleteSocketConnection(userID, socket) {
         // If there are no more pairs for the user, remove the user from the map
         if (pairs.length === 0) {
             activeConnections.delete(userID);
+            logger.info("Connection bridge demolished.");
         }
     }
 }
