@@ -2,7 +2,7 @@ const net = require('net');
 const tunnelDataHandler = require("./tunnelDataHandler");
 const logger = require("./logger");
 const bridge = require("./bridge/connection") 
-const crypto = require('./crypto/crypto');
+
 //Persistance Collections
 const database = require("./database/db.js");
 
@@ -31,26 +31,14 @@ function onEnd(clientSocket){
 }
 
 function onData(clientSocket, data){
-  let decryptedText;
+      try{
 
-    try{
-      //console.log(data);
-      decryptedText = crypto.decryptAESCBC(data.toString('base64'));
-      //console.log(data.toString('ascii'));
-      //console.log(Buffer.from(decryptedText, 'hex').toString('hex'));
-      //console.log(Buffer.from(crypto.encryptAESCBC(decryptedText), 'hex'));
-    } catch(error){
-        logger.warn(`Message decryption error: ${error}`);
-        logger.warn(`Message content: ${data.toString('hex')}`);
-    }
+        tunnelDataHandler(clientSocket, data.toString());
+  
+      } catch(error){
 
-    try{
-      tunnelDataHandler(clientSocket, data.toString());
-      console.log(Buffer.from(decryptedText, 'hex').toString());
-      //tunnelDataHandler(clientSocket, Buffer.from(decryptedText, 'hex').toString());
-    } catch(error){
         logger.warn(`Message process error: ${error}`);
-        logger.warn(`Message content: ${decryptedText}`);
+
     }
 }
 
