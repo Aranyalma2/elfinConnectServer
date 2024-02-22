@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
 const logger = require("../logger");
 
+const dbAddress = "database:27017";
+const dbCollectionName = "elfinconnect";
+
 const connectToDatabase = async () => {
   try {
-    await mongoose.connect("mongodb://database:27017/test");
+    await mongoose.connect(`mongodb://${dbAddress}/${dbCollectionName}`);
     logger.info("DB Connected!");
   } catch (error) {
     logger.error("DB Connection Error:", error);
