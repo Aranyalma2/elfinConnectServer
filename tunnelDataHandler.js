@@ -1,7 +1,6 @@
 const endpoint = require("./endpoint/device");
 const endpointDB = require("./endpoint/db");
 const bridge = require("./bridge/connection");
-const crypto = require('./crypto/crypto');
 const dataHB = require('./endpoint/dataHBHandler');
 
 const logger = require("./logger");
@@ -46,12 +45,8 @@ function tunnelRawDataHandler(clientSocket, dataStr) {
 			
 			//Search for destination device
 			const destinationDeviceSocket = bridge.getEndpointSocket(user, clientSocket);
-			
-			//payload = "beat;965b963fa1b585df;98D863584D0E;EW11;0";
-			const encryptedMessage = crypto.encryptAESCBC(payload);
-			//console.log(destinationDeviceSocket);
-			
-			destinationDeviceSocket.write(encryptedMessage);
+						
+			destinationDeviceSocket.write(payload);
 
 
 		} else if (dataParts[0] === "connthem" && dataParts.length == 4) {
