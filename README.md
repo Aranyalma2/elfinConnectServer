@@ -40,7 +40,7 @@ type;uuid;content
 * **data** Handle data contents, try to forward
 * **connthem** Try to create socket tunnel between 2 existing socket (by MAC)
 * **connme** Try to create tunnel between this socket (where msg came), and another existing one (by mac)
-- **query** Return all device for a uuid
+* **query** Return all device for a uuid
 
 ## :books: Architect
 
