@@ -32,6 +32,7 @@ The app is listening on tcp port 3001.
 ```text
 type;uuid;content
 ```
+
 * type : beat/data/connthem/connme/query
 * uuid : user unique identifier
 * content : specified datas by type
@@ -45,7 +46,7 @@ type;uuid;content
 ## :books: Architect
 
 * **endpoint**: This is representete a physical/virtual device. Device object and function, database interaction, and heartbeat handle. Store device objects and reference socket in memory.
-  + ***dataHBHandler.js*** 
+  * ***dataHBHandler.js*** 
 This has a solution for a physical device heartbeat correction. If device sending data headered messages, it won't send general heartbeats. For database load reduction this function is not update "lastseendate" attribute in db for all "data" type messages. If a "data" msg income, it will start a timer (timer 1), if second one is come to start a second one (timer 2). On third and more if timer 1&2 still up, it will restart timer 2. If timer 1 reach zero a database update will be triggered, and timer 2 be timer 1.
 
 * **bridge**: Store active connection tunnels only in memory. Able to create, check existing and destroy tunnels.
@@ -53,7 +54,6 @@ This has a solution for a physical device heartbeat correction. If device sendin
 ## :memo: License
 
 This project is under license from Apache 2.0. For more details, see the [LICENSE](LICENSE.md) file.
-
 
 Made with :heart: by <a href="https://github.com/Aranyalma2" target="_blank">Aranyalma2</a>
 
