@@ -1,6 +1,8 @@
 <h1 align="center">Elfin Connect Gateway Server</h1>
 <p align="center">
-<img alt="Github top language" src="https://img.shields.io/badge/version-0.2.87-blue">
+<img alt="Development version" src="https://img.shields.io/github/package-json/v/Aranyalma2/elfinConnectServer/development">
+
+<img alt="Latest release" src="https://img.shields.io/github/v/release/Aranyalma2/elfinConnectServer">
 
 <img alt="Github top language" src="https://img.shields.io/github/languages/top/Aranyalma2/elfinconnectserver?color=8f3d3d">
 
@@ -60,6 +62,3 @@ Made with :heart: by <a href="https://github.com/Aranyalma2" target="_blank">Ara
 &#xa0;
 
 <a href="#top">Back to top</a>
-
-
-
