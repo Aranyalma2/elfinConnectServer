@@ -32,12 +32,29 @@ function connectToUser(deviceObject){
 				logger.warn(`User is not in the DB, message is dropped. | User: ${deviceObject.ownerUuid}`);
 				return false;
 			}
-			//User is exists in DB
-			//Add device to user DB
-			saveHearthbeat(deviceObject).then((savedDevice) => {
-				//Try to connect device to user in DB
-				if (savedDevice) {
-					if (!foundUser.allDevices.includes(savedDevice._id)) {
+			//Check if device alrady in the database and the device is not in the user's device list but it is in other user's device list
+			//in this case remove the device from the other user's device list and add it to the current user's device list
+			database.Device.findOne({ macAddress: deviceObject.macAddress }).then(async (foundDevice) => {
+				if (foundDevice) {
+					if (!foundUser.allDevices.includes(foundDevice._id)) {
+						const otherUser = await database.User.findOne({ allDevices: foundDevice._id });
+						
+						if (otherUser) {
+							otherUser.allDevices = otherUser.allDevices.filter((device) => device._id.toString() !== foundDevice._id.toString());
+							await otherUser.save();
+							logger.verbose(`Device removed from user: ${otherUser.username}`);
+						}
+					}
+				}
+			});
+
+
+				//User is exists in DB
+				//Add device to user DB
+				saveHearthbeat(deviceObject).then((savedDevice) => {
+					//Try to connect device to user in DB
+					if (savedDevice) {
+						if (!foundUser.allDevices.includes(savedDevice._id)) {
 							foundUser.allDevices.push(savedDevice._id);
 							return foundUser.save().then(() => {
 								logger.verbose(`User updated: ${foundUser.username}`);
@@ -45,7 +62,8 @@ function connectToUser(deviceObject){
 						}
 					}
 				});
-			})
+			});
+		})
 		.catch((err) => {
 			logger.error(err);
 		});
