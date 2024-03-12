@@ -2,26 +2,6 @@ const logger = require("../logger");
 
 const database = require("../database/db.js");
 
-function saveHearthbeat(deviceObject) {
-	return new Promise((resolve, reject) => {
-		//Update device
-		const deviceDB = {
-			hostName: deviceObject.hostName,
-			macAddress: deviceObject.macAddress,
-			lastSeenDate: deviceObject.lastSeenDate,
-		};
-		database.Device.findOneAndUpdate({ macAddress: deviceObject.macAddress }, deviceDB, { upsert: true, new: true })
-			.then((device) => {
-				logger.debug(`Device updated or created: ${deviceObject.macAddress}`);
-				return resolve(device);
-			})
-			.catch((err) => {
-				logger.error(`Error updating or creating device in DB: ${err}`);
-				return reject(err);
-			});
-	});
-}
-
 function connectToUser(deviceObject) {
 
 	//Check user is exists in DB
@@ -44,7 +24,7 @@ function connectToUser(deviceObject) {
 						if (otherUser) {
 							otherUser.allDevices = otherUser.allDevices.filter((device) => device._id.toString() !== foundDevice._id.toString());
 							await otherUser.save();
-							logger.verbose(`Device removed from user: ${otherUser.username}`);
+							logger.debug(`Device removed from user: ${otherUser.username}`);
 						}
 					}
 					//Update the existing device in db with deviceObject's data
@@ -64,35 +44,20 @@ function connectToUser(deviceObject) {
 					});
 					await newDevice.save();
 					dbObject = newDevice;
-					console.log(newDevice);
 					logger.debug(`Device created: ${newDevice.macAddress}`);
 				}
 
 				//Push the device _id value inside the foundUser.allDevices array if not in
-				//if (!foundUser.allDevices.includes(savedDevice._id)) {
-				//	foundUser.allDevices.push(savedDevice._id);
-
-			});
-
-
-			//User is exists in DB
-			//Add device to user DB
-			saveHearthbeat(deviceObject).then((savedDevice) => {
-				//Try to connect device to user in DB
-				if (savedDevice) {
-					if (!foundUser.allDevices.includes(savedDevice._id)) {
-						foundUser.allDevices.push(savedDevice._id);
-						return foundUser.save().then(() => {
-							logger.verbose(`User updated: ${foundUser.username}`);
-						});
-					}
+				if (!foundUser.allDevices.includes(dbObject._id)) {
+					foundUser.allDevices.push(dbObject._id);
+					await foundUser.save();
 				}
+
 			});
-		});
-})
+		})
 		.catch ((err) => {
-	logger.error(err);
-});
+			logger.error(err);
+		});
 }
 
 async function getDevices(user) {
