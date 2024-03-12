@@ -1,6 +1,6 @@
 {
   "name": "elfinconnectserver",
-  "version": "0.2.141",
+  "version": "0.2.142",
   "description": "Web gateway for elfin IoT devices to access by local server",
   "main": "index.js",
   "scripts": {

@@ -49,7 +49,7 @@ const planeTcpServer = net.createServer((clientSocket) => {
 
   // Handle errors, remove socket from bridge if it is exists
   clientSocket.on('error', (error) => {
-    onError(clientSocket);
+    onError(clientSocket, error);
   });
 
   // Handle the connection end event, remove socket from bridge if it is exists
