@@ -40,6 +40,9 @@ function sendHeartbeat(mac, host, client) {
     client.on('close', () => {
       console.log(`Connection closed for ${mac}`);
     });
+    client.on('error', () => {
+      console.log(`Connection force closed for ${mac}`);
+    });
 
   } else {
     // If the connection is still writable, send the heartbeat message
