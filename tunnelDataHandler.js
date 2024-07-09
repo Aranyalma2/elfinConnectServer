@@ -48,6 +48,8 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const destinationDeviceSocket = bridge.getEndpointSocket(user, clientSocket);
 
 			destinationDeviceSocket.write(payload);
+
+		/* Disable 3th-party P2P connection builder
 		} else if (dataParts[0] === "connthem" && dataParts.length == 4) {
 			//TO CREATE a connection for user between 2 end-device
 			//Exapmle connthem;uuid:almafa;mac1:#MAC1#;mac2:#MAC2#
@@ -66,6 +68,7 @@ function tunnelRawDataHandler(clientSocket, data) {
 				logger.warn(e);
 				clientSocket.write('{"status":"failed"}' + "\n");
 			}
+			*/
 		} else if (dataParts[0] === "connme" && dataParts.length == 3) {
 			//TO CREATE a connection for user between incomming socket and an endpoint-device
 			//Exapmle connme;uuid:almafa;mac:#MAC#
@@ -75,8 +78,9 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const devMAC = dataParts[2];
 
 			try {
-				const device = endpoint.getDevice(endpoint.getKey(user, devMAC));
-				bridge.setupSocketConnection(user, clientSocket, device.clientSocket);
+				const nodeOwner = endpoint.getDevice(endpoint.getKey(user, devMAC));
+				bridge.addToNode(user, nodeOwner, clientSocket);
+				//bridge.setupSocketConnection(user, clientSocket, device.clientSocket);
 				clientSocket.write('{"status":"success"}' + "\n");
 			} catch (e) {
 				logger.warn(e);
@@ -136,7 +140,7 @@ function convertESTto24Time(estDateString) {
 	const formattedESTString = formatter.format(estDate);
 
 	return formattedESTString;
-}
+ }
 
 function calcOnline(date) {
 	return date > new Date(Date.now() - 60000) ? "online" : "offline";
