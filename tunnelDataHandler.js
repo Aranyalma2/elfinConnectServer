@@ -35,7 +35,7 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const dev1MAC = dataParts[2];
 			const hostName = dataParts[3];
 			const deviceType = dataParts[4];
-			logger.info.debug(`Received data from: ${dataParts[1]} | ${dataParts[2]}`);
+			logger.debug(`Received data from: ${dataParts[1]} | ${dataParts[2]}`);
 			if (deviceType === "0") {
 				const deviceObject = endpoint.createActiveDevice(user, hostName, dev1MAC, clientSocket);
 				endpoint.addOrUpdateDevice(deviceObject);
