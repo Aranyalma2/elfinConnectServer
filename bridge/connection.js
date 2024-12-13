@@ -3,20 +3,30 @@ const logger = require("../logger");
 let activeConnections = new Map();
 
 // Function to add a socket pair for a user ID to the map
-function setupSocketConnection(userID, socket1, socket2){
-    const socketPair = {socket1, socket2}
+function setupSocketConnection(userID, socket1, socket2, priority){
+    const socketPair = {socket1, socket2, priority}
 
     const existingPairs = getSocketPairs(userID);
     // Check if either socket1 or socket2 is already in the list
     if (existingPairs.some(pair => pair.socket1 === socketPair.socket1)) {
-        //throw new Error("One or both sockets already exist in the list for the given user ID.");
-        logger.warn("One or both sockets already exist in the list for the given user ID.");
-        deleteSocketConnection(userID, socket1);
+        if(pair.priority <= socketPair.priority){
+            logger.info("Higher priority connection request accepted. UserID: " + userID);
+            deleteSocketConnection(userID, socket1);
+        }else{
+            //Low priority connection request, so ignore it
+            logger.info("Lower priority connection request ignored. UserID: " + userID);
+            throw new Error("Lower priority connection request. UserID: " + userID);
+        }
     }
     if (existingPairs.some(pair => pair.socket2 === socketPair.socket2)) {
-        //throw new Error("One or both sockets already exist in the list for the given user ID.");
-        logger.warn("One or both sockets already exist in the list for the given user ID.");
-        deleteSocketConnection(userID, socket2);
+        if(pair.priority <= socketPair.priority){
+            logger.info("Higher priority connection request accepted. UserID: " + userID);
+            deleteSocketConnection(userID, socket2);
+        }else{
+            //Low priority connection request, so ignore it
+            logger.info("Lower priority connection request ignored. UserID: " + userID);
+            throw new Error("Lower priority connection request. UserID: " + userID);
+        }
     }
 
     // Check if the user ID is already in the map

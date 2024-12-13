@@ -51,12 +51,7 @@ function getDevice(key) {
 
 // Function to check if a device is online based on the lastSeenDate
 function isOnline(key) {
-	const device = activeDevices[key];
-	//Check device is exists in activity list
-	if (device === undefined) {
-		logger.warn(`Device is not exists in active client list, impossibly to be online | User: ${key.split("-")[0]} | Device: ${key.split("-")[1]}`);
-		return false;
-	}
+	const device = getDevice(key);
 	//Return true if lastSeenDate updated less then a minutes ago
 	return device.lastSeenDate > new Date(Date.now() - 60000);
 }
