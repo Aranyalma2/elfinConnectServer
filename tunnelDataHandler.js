@@ -4,7 +4,6 @@ const bridge = require("./bridge/connection");
 const dataHB = require("./endpoint/dataHBHandler");
 
 const logger = require("./logger");
-const { cli } = require("winston/lib/winston/config");
 
 function tunnelRawDataHandler(clientSocket, data) {
 	//Parse string by expected
@@ -37,7 +36,7 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const user = dataParts[1];
 			const dev1MAC = dataParts[2];
 			const hostName = dataParts[3];
-			const deviceType = dataParts[4]; //Its optional, if exists and zero, its a elfin device (Physical device)
+			const deviceType = dataParts[4]; //If zero, its a elfin device (Physical device), 
 			
 			if (deviceType === "0") {
 				const deviceObject = endpoint.createActiveDevice(user, hostName, dev1MAC, clientSocket);
@@ -49,10 +48,17 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const headerSize = dataParts[0].length + dataParts[1].length + dataParts[2].length + dataParts[3].length + dataParts[4].length + 5; //+5 is the length of the separators
 			const payload = data.subarray(headerSize, data.length);
 
-			//Search for destination device
-			const destinationDeviceSocket = bridge.getEndpointSocket(user, clientSocket);
-			//Send the payload to the destination device
-			destinationDeviceSocket.write(payload);
+			try{
+				//Search for destination device
+				const destinationDeviceSocket = bridge.getEndpointSocket(user, clientSocket);
+				//Send the payload to the destination device
+				destinationDeviceSocket.write(payload);
+			}catch(e){
+				logger.silly(`Data forwarding error: ${e.message}`);
+				if(deviceType !== "0"){
+					clientSocket.destroy();
+				}
+			}
 
 		} else if (dataParts[0] === "connthem" && dataParts.length == 4) {
 			//TO CREATE a connection for user between 2 end-device

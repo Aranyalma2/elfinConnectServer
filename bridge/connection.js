@@ -4,30 +4,38 @@ let activeConnections = new Map();
 
 // Function to add a socket pair for a user ID to the map
 function setupSocketConnection(userID, socket1, socket2, priority){
-    const socketPair = {socket1, socket2, priority}
+    const socketPair = {socket1, socket2, priority};
 
     const existingPairs = getSocketPairs(userID);
     // Check if either socket1 or socket2 is already in the list
-    if (existingPairs.some(pair => pair.socket1 === socketPair.socket1)) {
-        if(pair.priority <= socketPair.priority){
+    const existingPair1 = existingPairs.find(pair => pair.socket1 === socketPair.socket1);
+    if (existingPair1) {
+        if(!checkSocketPairActive(existingPair1)) {
+            logger.info("Connection bridge chack failed before.");
+            deleteSocketConnection(userID, existingPair1.socket1);
+        } else if (existingPair1.priority > socketPair.priority) {
             logger.info("Higher priority connection request accepted. UserID: " + userID);
-            deleteSocketConnection(userID, socket1);
-        }else{
-            //Low priority connection request, so ignore it
+            deleteSocketConnection(userID, socketPair.socket1);
+        } else {
             logger.info("Lower priority connection request ignored. UserID: " + userID);
             throw new Error("Lower priority connection request. UserID: " + userID);
         }
     }
-    if (existingPairs.some(pair => pair.socket2 === socketPair.socket2)) {
-        if(pair.priority <= socketPair.priority){
+
+    const existingPair2 = existingPairs.find(pair => pair.socket2 === socketPair.socket2);
+    if (existingPair2) {
+        if(!checkSocketPairActive(existingPair2)) {
+            logger.info("Connection bridge chack failed before.");
+            deleteSocketConnection(userID, existingPair1.socket2);
+        } else if (existingPair2.priority > socketPair.priority) {
             logger.info("Higher priority connection request accepted. UserID: " + userID);
-            deleteSocketConnection(userID, socket2);
-        }else{
-            //Low priority connection request, so ignore it
+            deleteSocketConnection(userID, socketPair.socket2);
+        } else {
             logger.info("Lower priority connection request ignored. UserID: " + userID);
             throw new Error("Lower priority connection request. UserID: " + userID);
         }
     }
+
 
     // Check if the user ID is already in the map
     if(activeConnections.has(userID)){
@@ -58,8 +66,10 @@ function getEndpointSocket(userID, socket){
     }
 
     throw new Error(`Socket has no valid pair. User: ${userID}`);
+}
 
-
+function checkSocketPairActive(socketPair) {
+    return socketPair.socket1.writable && socketPair.socket2.writable;
 }
 
 // Function to delete a socket pair for a given user ID and socket
