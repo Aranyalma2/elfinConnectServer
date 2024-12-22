@@ -13,7 +13,7 @@ function setupSocketConnection(userID, socket1, socket2, priority){
         if(!checkSocketPairActive(existingPair1)) {
             logger.info("Connection bridge chack failed before.");
             deleteSocketConnection(userID, existingPair1.socket1);
-        } else if (existingPair1.priority > socketPair.priority) {
+        } else if (existingPair1.priority >= socketPair.priority) {
             logger.info("Higher priority connection request accepted. UserID: " + userID);
             deleteSocketConnection(userID, socketPair.socket1);
         } else {
@@ -27,7 +27,7 @@ function setupSocketConnection(userID, socket1, socket2, priority){
         if(!checkSocketPairActive(existingPair2)) {
             logger.info("Connection bridge chack failed before.");
             deleteSocketConnection(userID, existingPair1.socket2);
-        } else if (existingPair2.priority > socketPair.priority) {
+        } else if (existingPair2.priority >= socketPair.priority) {
             logger.info("Higher priority connection request accepted. UserID: " + userID);
             deleteSocketConnection(userID, socketPair.socket2);
         } else {
