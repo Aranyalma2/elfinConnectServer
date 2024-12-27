@@ -6,7 +6,7 @@ const bridge = require("./bridge/connection");
 //Persistance Collections
 const database = require("./database/db.js");
 
-const serverPort = process.env.PORT || 3001;
+const serverPort = process.env.GATEWAY_SERVER_PORT || 3001;
 
 database.connectToDatabase();
 
