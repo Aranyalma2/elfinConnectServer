@@ -42,6 +42,13 @@ function onData(clientSocket, data) {
 const planeTcpServer = net.createServer((clientSocket) => {
 	logger.info(`Device connected: ${clientSocket.remoteAddress}:${clientSocket.remotePort}`);
 
+	clientSocket.setTimeout(60000);
+
+	clientSocket.on("timeout", () => {
+		onError(clientSocket, "Timeout");
+		clientSocket.end();
+	});
+
 	// Handle errors, remove socket from bridge if it is exists
 	clientSocket.on("error", (error) => {
 		onError(clientSocket, error);
