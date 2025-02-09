@@ -11,7 +11,7 @@ function setupSocketConnection(userID, socket1, socket2, priority){
     const existingPair1 = existingPairs.find(pair => pair.socket1 === socketPair.socket1);
     if (existingPair1) {
         if(!checkSocketPairActive(existingPair1)) {
-            logger.info("Connection bridge chack failed before.");
+            logger.info("Connection bridge check failed before.");
             deleteSocketConnection(userID, existingPair1.socket1);
         } else if (existingPair1.priority >= socketPair.priority) {
             logger.info("Higher priority connection request accepted. UserID: " + userID);

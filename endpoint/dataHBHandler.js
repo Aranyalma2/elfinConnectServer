@@ -26,8 +26,9 @@ class Timer {
 
     logger.debug(`Data HB a Timer over: ${this.deviceKey.split("-")[1]}`);
 
-
-    endpointDB.connectToUser(endpoint.getDevice(this.deviceKey));
+    try{
+      endpointDB.connectToUser(endpoint.getDevice(this.deviceKey));
+    }catch{}
 
     if (objectTimers[this.deviceKey].second) {
       objectTimers[this.deviceKey].first = objectTimers[this.deviceKey].second;

@@ -2,9 +2,11 @@ const net = require("net");
 const tunnelDataHandler = require("./tunnelDataHandler");
 const logger = require("./logger");
 const bridge = require("./bridge/connection");
+const device = require("./endpoint/device");
 
 //Persistance Collections
 const database = require("./database/db.js");
+const { cli } = require("winston/lib/winston/config/index.js");
 
 const serverPort = process.env.GATEWAY_SERVER_PORT || 3001;
 
@@ -15,6 +17,7 @@ function onError(clientSocket, error) {
 	logger.warn(`${clientSocket.remoteAddress}:${clientSocket.remotePort}`);
 	try {
 		bridge.deleteSocketConnectionBySocket(clientSocket);
+		device.removeDeviceBySocket(clientSocket);
 	} catch (error) {
 		logger.warn(error);
 	}
@@ -25,6 +28,7 @@ function onEnd(clientSocket) {
 	logger.verbose(`${clientSocket.remoteAddress}:${clientSocket.remotePort}`);
 	try {
 		bridge.deleteSocketConnectionBySocket(clientSocket);
+		device.removeDeviceBySocket(clientSocket);
 	} catch (error) {
 		logger.warn(error);
 	}
@@ -43,6 +47,7 @@ const planeTcpServer = net.createServer((clientSocket) => {
 	logger.info(`Device connected: ${clientSocket.remoteAddress}:${clientSocket.remotePort}`);
 
 	clientSocket.setTimeout(60000);
+	clientSocket.setKeepAlive(true, 30000);
 
 	clientSocket.on("timeout", () => {
 		onError(clientSocket, "Timeout");

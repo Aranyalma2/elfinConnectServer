@@ -56,6 +56,14 @@ function isOnline(key) {
 	return device.lastSeenDate > new Date(Date.now() - 60000);
 }
 
+//Remove from active device by socket
+function removeDeviceBySocket(socket) {
+	const key = Object.keys(activeDevices).find((key) => activeDevices[key].clientSocket === socket);
+	if (key) {
+		delete activeDevices[key];
+	}
+}
+
 //Active device mannger object
 const activeDeviceMannger = {
 	getKey,
@@ -64,6 +72,7 @@ const activeDeviceMannger = {
 	addOrUpdateDevice,
 	getDevice,
 	isOnline,
+	removeDeviceBySocket,
 };
 
 module.exports = activeDeviceMannger;
