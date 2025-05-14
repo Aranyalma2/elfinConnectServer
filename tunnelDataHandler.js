@@ -36,8 +36,10 @@ function tunnelRawDataHandler(clientSocket, data) {
 			const user = dataParts[1];
 			const dev1MAC = dataParts[2];
 			const hostName = dataParts[3];
-			const deviceType = dataParts[4]; //If zero, its a elfin device (Physical device), 
-			
+			const deviceType = dataParts[4];
+      
+			logger.debug(`Received data from: ${dataParts[1]} | ${dataParts[2]}`);
+      
 			if (deviceType === "0") {
 				const deviceObject = endpoint.createActiveDevice(user, hostName, dev1MAC, clientSocket);
 				endpoint.addOrUpdateDevice(deviceObject);
@@ -166,7 +168,7 @@ function convertESTto24Time(estDateString) {
 }
 
 function calcOnline(date) {
-	return date > new Date(Date.now() - 60000) ? "online" : "offline";
+	return date > new Date(Date.now() - 600000) ? "online" : "offline";
 }
 
 module.exports = tunnelRawDataHandler;
