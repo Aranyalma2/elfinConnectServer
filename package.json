@@ -1,6 +1,6 @@
 {
   "name": "elfinconnectserver",
-  "version": "0.2.147",
+  "version": "0.2.148",
   "description": "Web gateway for elfin IoT devices to access by local server",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/Aranyalma2/elfinConnectServer#readme",
   "dependencies": {
-    "mongoose": "^7.6.3",
-    "winston": "^3.11.0"
+    "mongoose": "^7.8.7",
+    "winston": "^3.17.0"
   }
 }
